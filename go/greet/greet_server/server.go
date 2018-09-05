@@ -1,10 +1,12 @@
 package main
+
 import (
 	"fmt"
-	"net"
 	"log"
-	"google.golang.org/grpc"
+	"net"
+
 	"../greetpb"
+	"google.golang.org/grpc"
 )
 
 type server struct{}
