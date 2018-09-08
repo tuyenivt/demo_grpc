@@ -14,11 +14,11 @@ type server struct{}
 
 func (*server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
 	fmt.Printf("Sum function was invoked with %v", req)
-	first := req.GetAddition().GetFirstAddition()
-	second := req.GetAddition().GetSecondAddition()
+	first := req.GetFirstNumber()
+	second := req.GetSecondNumber()
 	result := first + second
 	res := &calculatorpb.SumResponse{
-		Result: result,
+		SumResult: result,
 	}
 	return res, nil
 }
