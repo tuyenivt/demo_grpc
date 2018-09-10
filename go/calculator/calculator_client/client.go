@@ -24,7 +24,9 @@ func main() {
 
 	// doServerStreaming(c)
 
-	doClientStreaming(c)
+	// doClientStreaming(c)
+
+	doBiDirectionalStreaming(c)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -82,4 +84,45 @@ func doClientStreaming(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("[calculator] error while receiving response from ComputeAverage: %v", err)
 	}
 	fmt.Printf("[calculator] Response from ComputeAverage: %v\n", res.GetAverage())
+}
+
+func doBiDirectionalStreaming(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("[calculator] Starting to do a Bi Directional Streaming RPC...")
+	// we create a stream by invoking the client
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("[calculator] error while calling FindMaximum RPC: %v\n", err)
+	}
+	waitc := make(chan struct{})
+	// we send a bunch of numbers to the client (go routine)
+	go func() {
+		// function to send a bunch of numbers
+		numbers := []int32{1, 5, 3, 6, 2, 20}
+		for _, number := range numbers {
+			fmt.Printf("[calculator] Sending number: %v\n", number)
+			stream.Send(&calculatorpb.FindMaximumRequest{
+				Number: number,
+			})
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+	// we receive a bunch of numbers from the client (go routine)
+	go func() {
+		// function to receive a bunch of numbers
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("[calculator] error while receiving max of numbers: %v", err)
+				break
+			}
+			fmt.Printf("[calculator] Received new maximum: %v\n", res.GetMax())
+		}
+		close(waitc)
+	}()
+	// block until everything is done
+	<-waitc
 }
