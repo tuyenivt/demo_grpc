@@ -88,19 +88,6 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 	}
 }
 
-func main() {
-	fmt.Println("Hello World! This is Server")
-	lis, err := net.Listen("tcp", "0.0.0.0:50051")
-	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
-	}
-	s := grpc.NewServer()
-	greetpb.RegisterGreetServiceServer(s, &server{})
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
-	}
-}
-
 func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDeadlineRequest) (*greetpb.GreetWithDeadlineResponse, error) {
 	fmt.Printf("GreetWithDeadline function was invoked with %v\n", req)
 	for i := 0; i < 3; i++ {
@@ -118,4 +105,17 @@ func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDead
 		Result: result,
 	}
 	return res, nil
+}
+
+func main() {
+	fmt.Println("Hello World! This is Server")
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	greetpb.RegisterGreetServiceServer(s, &server{})
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
+	}
 }
