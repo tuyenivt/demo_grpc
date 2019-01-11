@@ -1,21 +1,50 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"time"
 
 	"../blogpb"
+	"github.com/mongodb/mongo-go-driver/mongo"
 	"google.golang.org/grpc"
+
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 )
 
+var collection *mongo.Collection
+
 type server struct{}
+
+type blogItem struct {
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	AuthorID string             `bson:"author_id"`
+	Content  string             `bson:"content"`
+	Title    string             `bson:"title"`
+}
 
 func main() {
 	// if we crash the go code, we get the file name and line number
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// connect to MongoDB
+	fmt.Println("Connecting to MongoDB")
+	client, err := mongo.NewClient("mongodb://root:root@localhost:8081")
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	collection = client.Database("mydb").Collection("blog")
 
 	fmt.Println("Blog Service Started")
 
@@ -47,5 +76,7 @@ func main() {
 	s.Stop()
 	fmt.Println("Closing the listener...")
 	lis.Close()
+	fmt.Println("Closing MongoDB connection")
+	client.Disconnect(context.Background())
 	fmt.Println("End of program")
 }
