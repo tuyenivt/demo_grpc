@@ -71,7 +71,7 @@ func main() {
 
 	// connect to MongoDB
 	fmt.Println("Connecting to MongoDB")
-	client, err := mongo.NewClient("mongodb://root:root@localhost:8081")
+	client, err := mongo.NewClient("mongodb://root:root@localhost:27017")
 	if err != nil {
 		log.Fatal(err)
 	}
